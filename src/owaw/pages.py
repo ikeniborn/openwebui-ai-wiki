@@ -66,7 +66,9 @@ def synthesize_pages(llm, domain: Domain, source_text: str, source_stem: str,
 
 
 def write_page(wiki_dir: Path, page: WikiPage) -> None:
-    target = wiki_dir / page.path
+    target = (wiki_dir / page.path).resolve()
+    if not target.is_relative_to(wiki_dir.resolve()):
+        raise ValueError(f"page path escapes wiki_dir: {page.path!r}")
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(page.content, encoding="utf-8")
 

@@ -1,3 +1,4 @@
+import pytest
 from pathlib import Path
 from owaw.pages import synthesize_pages, write_page, read_existing_pages, WikiPage
 from owaw.domains import Domain, EntityType
@@ -34,7 +35,7 @@ def test_synthesize_returns_pages():
     )]
 
 
-def test_prompt_includes_entities_and_existing(tmp_path):
+def test_prompt_includes_entities_and_existing():
     llm = StubLLM({"reasoning": "r", "pages": []})
     synthesize_pages(llm, _domain(), "src", "minipc-docs",
                      [Entity(name="Traefik")], existing_pages=[
@@ -54,3 +55,9 @@ def test_write_and_read_page_roundtrip(tmp_path):
     assert len(existing) == 1
     assert existing[0].path == "wiki_infra_traefik.md"
     assert existing[0].content == page.content
+
+
+def test_write_page_rejects_path_escape(tmp_path):
+    bad = WikiPage(path="../outside.md", content="x", annotation="a")
+    with pytest.raises(ValueError, match="escapes"):
+        write_page(tmp_path, bad)
