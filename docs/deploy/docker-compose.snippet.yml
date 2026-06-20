@@ -14,5 +14,19 @@ services:
     networks:
       - proxy-net
 
+  owaw-sync:
+    build: ../openwebui-ai-wiki        # same image as owaw
+    container_name: minipc-traefik-owaw-sync
+    restart: unless-stopped
+    command: ["sync-watch"]            # reconcile on start, then inotify on chunks/
+    env_file:
+      - ./owaw.conf                    # adds OWAW_OPENWEBUI_TOKEN=... (chmod 600, not committed)
+    volumes:
+      - owaw_data:/data                # mounted rw: reads chunks/, writes only state/sync_*.json
+    depends_on:
+      - owaw
+    networks:
+      - proxy-net                      # reaches OpenWebUI internally; no Traefik router
+
 volumes:
   owaw_data:
