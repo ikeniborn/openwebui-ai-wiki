@@ -1,0 +1,12 @@
+domains:
+  - id: infra
+    name: "Infrastructure"
+    wiki_folder: infra
+    source_paths:
+      - /data/sources/minipc-docs
+    entity_types:
+      - type: service
+        description: "A deployed service or daemon"
+        extraction_cues: ["systemd unit", "container", "port"]
+        min_mentions_for_page: 2
+    language_notes: "Corpus is mostly Russian; keep entity names verbatim."

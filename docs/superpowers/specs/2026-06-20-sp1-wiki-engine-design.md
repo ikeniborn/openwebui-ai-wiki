@@ -212,7 +212,7 @@ existing `openwebui.conf` pattern in the `minipc-traefik` stack.
 | Docling extraction fails | Skip file, log, continue pipeline |
 | LLM call / JSON parse fails | Retry with repair (`parse-with-retry`); on exhaustion, skip the page and keep the last valid version |
 | Source file deleted | Remove or mark stale the orphaned pages/chunks for that source (incremental) |
-| Daemon crash mid-ingest | `manifest.json` enables resume; only the in-flight file re-processes |
+| Daemon crash mid-ingest | per-domain `manifest_<domain>.json` (saved after each file) enables resume; only the in-flight file re-processes |
 | Embedding/LiteLLM down | Not SP1's path — SP1 never embeds; chunk records are produced regardless |
 
 ## 11. Testing
@@ -232,3 +232,26 @@ existing `openwebui.conf` pattern in the `minipc-traefik` stack.
 
 None blocking. Defaults chosen above (JSONL chunk store; small default `entity_types` set;
 debounce window) are revisitable during implementation without changing the architecture.
+
+## 13. Implementation notes (post-build)
+
+Resolved deltas from the original design, settled during implementation:
+
+- **Per-domain manifest.** The state file is `state/manifest_<domain>.json` (not a single shared
+  `state/manifest.json`). This removes a last-writer-wins race when distinct domains ingest in
+  parallel under the daemon (§7). The manifest is also saved **after each file** (not once per run),
+  so a crash re-processes only the in-flight file (§7 crash-recovery guarantee).
+- **Cyrillic entity slugs.** `entity_slug` transliterates Russian Cyrillic → Latin before the ASCII
+  fold (the corpus is Russian); otherwise Cyrillic names collapsed to an empty slug.
+- **Prompts ship as package data** (`src/owaw/prompts/`, loaded via `importlib.resources`) so the
+  wheel install works.
+- **`write_page` path-traversal guard** rejects LLM-returned paths that escape the domain wiki dir.
+
+Deferred (tracked as follow-ups, not built in SP1):
+
+- **Wikilink validation/fixing** (§5 step 4). SP1 rebuilds `_index.md` but does not yet validate or
+  repair `[[stem]]` links in page bodies. The synthesis prompt instructs correct links; impact is
+  on **SP3** (which serves page bodies), not SP2 (which embeds `embed_text`). Add a deterministic
+  dead-link pass or an LLM fix-paths phase in a follow-up.
+- **`.domain.yaml` snapshot and `logs/` file routing** (§8) are not written/wired yet; `logging`
+  currently goes to stderr. Low value until operations need them.

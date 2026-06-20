@@ -1,0 +1,13 @@
+generation:
+  model: "<litellm-cloud-model-id>"          # e.g. an ollama *:cloud or anthropic model
+  base_url: "http://host.docker.internal:4000/v1"
+  api_key_env: OWAW_LLM_KEY                   # value injected from secrets, never committed
+chunking:
+  maxChars: 1200
+  minChars: 200
+  overlapChars: 200
+  maxCount: 12
+extraction:
+  engine: docling
+daemon:
+  debounce_ms: 1500

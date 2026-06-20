@@ -1,0 +1,18 @@
+# Add to the minipc-traefik stack. No Traefik router — internal service only.
+services:
+  owaw:
+    build: ../openwebui-ai-wiki        # or image: once published
+    container_name: minipc-traefik-owaw
+    restart: unless-stopped
+    env_file:
+      - ./owaw.conf                    # OWAW_LLM_KEY=... (chmod 600, not committed)
+    volumes:
+      - owaw_data:/data                # wiki + chunks + state (shared with SP2/SP3)
+      - /opt/minipc-docs:/data/sources/minipc-docs:ro   # source(s), read-only, nested ok
+    extra_hosts:
+      - "host.docker.internal:host-gateway"   # reach LiteLLM on the host
+    networks:
+      - proxy-net
+
+volumes:
+  owaw_data:
