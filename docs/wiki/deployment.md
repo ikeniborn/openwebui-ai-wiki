@@ -6,7 +6,7 @@ How SP1 is packaged and run: the Python package metadata, the container image, t
 
 `pyproject.toml` declares the `owaw` package (hatchling build, Python ≥ 3.12). Dependencies: `typer`, `pyyaml`, `openai`, `docling`, `watchdog`; `pytest` under the `dev` extra. The `owaw` console script maps to `owaw.cli:app`.
 
-Prompts are shipped as package data via `force-include` (`src/owaw/prompts/*.md` → `owaw/prompts/`), so the wheel install can load them with `importlib.resources` — see [[entity-page-synthesis#Prompt templates]]. Pytest is configured with `pythonpath=["src"]` and `testpaths=["tests"]`.
+Prompts are shipped as package data via `force-include` (`src/owaw/prompts/*.md` → `owaw/prompts/`), so the wheel install can load them with `importlib.resources` — see [[entity-page-synthesis#Prompt templates]]. Pytest is configured with `pythonpath=["src"]` and `testpaths=["tests"]` — build/test/run commands are in [[development-workflow#Build and install]].
 
 ## Container image (Dockerfile)
 

@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>check-spec — SP2 Embedding + Sync</title>
+<style>
+  :root[data-theme="dark"]{
+    --bg:#0f1419; --panel:#171d26; --panel2:#1e2632; --ink:#e6edf3; --muted:#9aa7b4;
+    --line:#2b3543; --accent:#4ea1ff; --ok:#3fb950; --warn:#d9a441; --crit:#f85149;
+    --chip:#243040; --shadow:rgba(0,0,0,.5);
+  }
+  :root[data-theme="light"]{
+    --bg:#f6f8fa; --panel:#ffffff; --panel2:#f0f3f6; --ink:#1f2328; --muted:#57606a;
+    --line:#d0d7de; --accent:#0969da; --ok:#1a7f37; --warn:#9a6700; --crit:#cf222e;
+    --chip:#eaeef2; --shadow:rgba(140,149,159,.25);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+  .wrap{max-width:1080px;margin:0 auto;padding:32px 20px 64px}
+  header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap}
+  h1{font-size:24px;margin:0 0 4px}
+  h2{font-size:19px;margin:36px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+  h3{font-size:15px;margin:22px 0 8px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+  .sub{color:var(--muted);font-size:13px}
+  .toggle{cursor:pointer;border:1px solid var(--line);background:var(--panel);color:var(--ink);
+    border-radius:8px;padding:8px 14px;font-size:13px}
+  .toggle:hover{border-color:var(--accent)}
+  table{width:100%;border-collapse:collapse;background:var(--panel);border:1px solid var(--line);
+    border-radius:10px;overflow:hidden;margin:8px 0 4px}
+  th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top;font-size:13.5px}
+  th{background:var(--panel2);color:var(--muted);font-weight:600;text-transform:uppercase;font-size:11.5px;letter-spacing:.03em}
+  tr:last-child td{border-bottom:none}
+  code{background:var(--chip);padding:1px 5px;border-radius:5px;font-size:12.5px;
+    font-family:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace}
+  .chip{display:inline-block;padding:2px 9px;border-radius:999px;font-size:11.5px;font-weight:600;border:1px solid var(--line);background:var(--chip)}
+  .ok{color:var(--ok);border-color:var(--ok)}
+  .warn{color:var(--warn);border-color:var(--warn)}
+  .crit{color:var(--crit);border-color:var(--crit)}
+  .verdict{font-size:18px;font-weight:700}
+  .note{background:var(--panel2);border-left:3px solid var(--accent);border-radius:0 8px 8px 0;
+    padding:12px 14px;margin:14px 0;font-size:13.5px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:10px 0}
+  .stat{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px}
+  .stat .n{font-size:26px;font-weight:700}
+  .stat .l{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.04em}
+  /* CSS flow diagram */
+  .flow{display:flex;flex-direction:column;gap:0;margin:14px 0}
+  .node{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 16px;
+    box-shadow:0 2px 8px var(--shadow);position:relative}
+  .node b{color:var(--accent)}
+  .node .d{color:var(--muted);font-size:12.5px}
+  .arrow{align-self:center;color:var(--muted);font-size:18px;line-height:1;margin:2px 0}
+  figure{margin:14px 0}
+  figcaption{color:var(--muted);font-size:12.5px;margin-top:6px;text-align:center}
+  svg{max-width:100%;height:auto;background:var(--panel);border:1px solid var(--line);border-radius:10px}
+  .gnode{fill:var(--panel2);stroke:var(--line)}
+  .gtext{fill:var(--ink);font:12px sans-serif}
+  .gedge{stroke:var(--muted);stroke-width:1.4;fill:none}
+  .legend td:first-child{width:120px}
+  footer{margin-top:40px;color:var(--muted);font-size:12.5px;border-top:1px solid var(--line);padding-top:14px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div>
+    <h1>check-spec — SP2 «Embedding + Sync»</h1>
+    <div class="sub">Файл: <code>docs/superpowers/specs/2026-06-20-sp2-embedding-sync-design.md</code><br>
+    spec_hash: <code>d32bd6eb200103a4</code> · last_run: 2026-06-20 · scope: SP2 of 3</div>
+  </div>
+  <button class="toggle" onclick="(function(){var r=document.documentElement;r.dataset.theme=r.dataset.theme==='dark'?'light':'dark';})()">◐ Тема</button>
+</header>
+
+<div class="grid">
+  <div class="stat"><div class="n" style="color:var(--ok)">OK</div><div class="l">Вердикт</div></div>
+  <div class="stat"><div class="n">4 / 4</div><div class="l">Фазы passed</div></div>
+  <div class="stat"><div class="n" style="color:var(--crit)">0</div><div class="l">CRITICAL open</div></div>
+  <div class="stat"><div class="n" style="color:var(--warn)">3</div><div class="l">WARNING (accepted)</div></div>
+</div>
+
+<h2>1. Резюме спецификации</h2>
+<h3>Требования (по секциям)</h3>
+<table>
+  <tr><th>§</th><th>Требование</th><th>Задача плана</th></tr>
+  <tr><td>2</td><td><b>bge-m3 enablement</b> — добавить модель в LiteLLM (embedding), нацелить RAG-embedding OpenWebUI на неё (OpenAI-compat → LiteLLM, model <code>bge-m3</code>)</td><td>T1, T8, T11</td></tr>
+  <tr><td>2</td><td><b>Sync service</b> — читать <code>chunks/&lt;domain&gt;.jsonl</code>, diff vs sync-state, add/delete через Knowledge API; одна запись на чанк; external id = <code>hash</code>; метаданные <code>{domain,page_id,kind}</code></td><td>T2–T8</td></tr>
+  <tr><td>2</td><td><b>Autosync</b> — inotify на <code>chunks/</code> (debounce) или после ingest; eventually-consistent; full reconcile на старте</td><td>T9</td></tr>
+  <tr><td>2</td><td><b>Deletion handling</b> — чанки, исчезнувшие из JSONL → удалить записи коллекции</td><td>T5, T6</td></tr>
+  <tr><td>2</td><td><b>Idempotency</b> — повтор на неизменном JSONL = ноль API-записей</td><td>T5</td></tr>
+  <tr><td>2</td><td><b>Auth</b> — OpenWebUI API-токен (env/secret) для Knowledge API</td><td>T1, T8</td></tr>
+  <tr><td>3</td><td><b>Архитектура</b> — sidecar в <code>minipc-traefik</code>, <code>proxy-net</code>, без публичного роута; data-dir том (chunks ro); sync-state <code>state/sync_&lt;collection&gt;.json</code> (hash→entry id)</td><td>T2, T11</td></tr>
+  <tr><td>4</td><td><b>Data flow</b> — 5 шагов: write JSONL → inotify→desired set → diff→add/delete → OpenWebUI embeds (bge-m3) → RAG (SP3)</td><td>T3–T9</td></tr>
+  <tr><td>5</td><td><b>Configuration</b> — <code>openwebui</code>/<code>embedding</code>/<code>sync</code> секции в config.yaml</td><td>T1, T11</td></tr>
+  <tr><td>6</td><td><b>Error handling</b> — retry/backoff; per-entry state; full reconcile при stale</td><td>T5, T6, T8</td></tr>
+  <tr><td>7</td><td><b>Testing</b> — diff/deletion/idempotency (unit) + integration (add→delete, метаданные)</td><td>T3, T5, T8, T10</td></tr>
+</table>
+
+<h3>Success Criteria</h3>
+<table>
+  <tr><th>Критерий</th><th>Источник</th></tr>
+  <tr><td>Коллекция в синхроне с on-disk чанками в пределах секунд после ingest</td><td>§2 Goal</td></tr>
+  <tr><td>Новые чанки добавлены, удалённые — убраны</td><td>§2 Goal</td></tr>
+  <tr><td>Идемпотентность: ноль API-записей на неизменном JSONL</td><td>§2, §7</td></tr>
+  <tr><td>Eventually-consistent; full reconcile на старте сходится к desired set</td><td>§2, §6</td></tr>
+  <tr><td>Метаданные round-trip; integration сходится add→delete</td><td>§7</td></tr>
+</table>
+
+<h2>2. Схемы решения и зависимостей</h2>
+
+<h3>Схема решения (data/control flow)</h3>
+<div class="flow">
+  <div class="node"><b>SP1 data dir</b> (shared volume) · <span class="d"><code>chunks/&lt;domain&gt;.jsonl</code> — records {page_id, domain, kind, embed_text, hash}</span></div>
+  <div class="arrow">▼ inotify (debounced)</div>
+  <div class="node"><b>SP2 sync sidecar</b> · <span class="d"><code>build_desired</code> → desired set keyed by hash; <code>diff</code> vs <code>state/sync_&lt;collection&gt;.json</code> (hash→entry id)</span></div>
+  <div class="arrow">▼ add(text,meta) / delete(id)</div>
+  <div class="node"><b>OpenWebUI Knowledge API</b> · <span class="d">upload file <code>&lt;hash&gt;.md</code> → attach to collection; remove+delete on prune</span></div>
+  <div class="arrow">▼ OpenWebUI embeds each entry</div>
+  <div class="node"><b>LiteLLM /v1/embeddings → bge-m3</b> <span class="d">(1024-dim, Russian corpus)</span></div>
+  <div class="arrow">▼ indexed</div>
+  <div class="node"><b>Knowledge collection «ai-wiki»</b> <span class="d">→ consumed by SP3 RAG (out of scope)</span></div>
+</div>
+
+<h3>Граф зависимостей компонентов</h3>
+<figure>
+<svg viewBox="0 0 920 300" role="img" aria-label="Граф зависимостей компонентов SP2">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--muted)"/>
+    </marker>
+    <filter id="ds" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="var(--shadow)"/>
+    </filter>
+  </defs>
+  <!-- nodes -->
+  <g filter="url(#ds)">
+    <rect class="gnode" x="20"  y="120" width="140" height="44" rx="8"/>
+    <rect class="gnode" x="200" y="40"  width="150" height="44" rx="8"/>
+    <rect class="gnode" x="200" y="200" width="150" height="44" rx="8"/>
+    <rect class="gnode" x="390" y="120" width="150" height="44" rx="8"/>
+    <rect class="gnode" x="580" y="40"  width="150" height="44" rx="8"/>
+    <rect class="gnode" x="580" y="200" width="150" height="44" rx="8"/>
+    <rect class="gnode" x="770" y="120" width="130" height="44" rx="8"/>
+  </g>
+  <text class="gtext" x="90"  y="146" text-anchor="middle">config.py</text>
+  <text class="gtext" x="275" y="66"  text-anchor="middle">build_desired</text>
+  <text class="gtext" x="275" y="226" text-anchor="middle">SyncState</text>
+  <text class="gtext" x="465" y="146" text-anchor="middle">SyncEngine</text>
+  <text class="gtext" x="655" y="66"  text-anchor="middle">KnowledgeClient</text>
+  <text class="gtext" x="655" y="226" text-anchor="middle">daemon.watch_paths</text>
+  <text class="gtext" x="835" y="146" text-anchor="middle">cli sync*</text>
+  <!-- edges (A -> B means A used-by/depends) -->
+  <path class="gedge" marker-end="url(#arr)" d="M160,135 C180,110 185,80 200,66"/>
+  <path class="gedge" marker-end="url(#arr)" d="M350,62  C370,80 375,110 390,132"/>
+  <path class="gedge" marker-end="url(#arr)" d="M350,222 C370,200 375,170 390,152"/>
+  <path class="gedge" marker-end="url(#arr)" d="M540,138 C560,110 565,80 580,66"/>
+  <path class="gedge" marker-end="url(#arr)" d="M730,62  C750,90 755,115 770,135"/>
+  <path class="gedge" marker-end="url(#arr)" d="M655,200 L655,164"/>
+  <path class="gedge" marker-end="url(#arr)" d="M730,222 C750,200 800,175 800,164"/>
+  <path class="gedge" marker-end="url(#arr)" d="M160,150 C250,150 320,150 390,145"/>
+</svg>
+<figcaption>Рёбра: «используется / зависит от». <code>SyncEngine</code> — узел сходимости (desired+state+client); <code>cli sync*</code> оркеструет reconcile/watch.</figcaption>
+</figure>
+
+<h3>Карта покрытия (задача → требование спеки)</h3>
+<table>
+  <tr><th>Задача плана</th><th>Покрывает (§ требование)</th></tr>
+  <tr><td>T1 config + paths + httpx</td><td>§5 Configuration; §2 Auth (env-токен)</td></tr>
+  <tr><td>T2 SyncState</td><td>§3 sync-state map hash→entry id</td></tr>
+  <tr><td>T3 build_desired + diff</td><td>§4 data flow (desired set); §7 diff unit</td></tr>
+  <tr><td>T4 KnowledgeClient protocol + fake</td><td>§2 sync service; §7 fake client</td></tr>
+  <tr><td>T5 SyncEngine.sync</td><td>§2 add/delete, deletion, idempotency; §6 per-entry</td></tr>
+  <tr><td>T6 SyncEngine.reconcile</td><td>§6 stale state → full reconcile; §2 deletion (orphans)</td></tr>
+  <tr><td>T7 spike</td><td>§8 open question #1 (API surface)</td></tr>
+  <tr><td>T8 OpenWebUIKnowledgeClient</td><td>§2 Knowledge API; §3 token/proxy-net; §6 retry/backoff</td></tr>
+  <tr><td>T9 watch_paths + CLI sync/sync-watch</td><td>§2 autosync inotify; §4 reconcile-on-start</td></tr>
+  <tr><td>T10 integration test</td><td>§7 integration add→delete, метаданные</td></tr>
+  <tr><td>T11 deploy wiring</td><td>§3 sidecar; §5 sample config</td></tr>
+  <tr><td>T12 iwiki docs</td><td>проектное правило «Keep Docs Current»</td></tr>
+</table>
+
+<h2>3. Результаты проверки</h2>
+<table>
+  <tr><th>Фаза</th><th>Статус</th><th>Новые findings</th></tr>
+  <tr><td>structure</td><td><span class="chip ok">passed</span></td><td>0 — нет TODO/TBD/???/FIXME; нумерация §1–§8 без пропусков; ссылки валидны; нет дублей заголовков</td></tr>
+  <tr><td>coverage</td><td><span class="chip ok">passed</span></td><td>F-001 (WARNING) — том ro/rw vs запись sync-state</td></tr>
+  <tr><td>clarity</td><td><span class="chip ok">passed</span></td><td>F-002, F-003 (WARNING) — незаданные значения</td></tr>
+  <tr><td>consistency</td><td><span class="chip ok">passed</span></td><td>0 — первый прогон, все секции новые</td></tr>
+</table>
+
+<h3>Findings</h3>
+<table>
+  <tr><th>ID</th><th>Severity</th><th>§</th><th>Описание</th><th>Verdict</th></tr>
+  <tr>
+    <td>F-001</td><td><span class="chip warn">WARNING</span></td><td>3</td>
+    <td>Том data-dir описан как «read-only for chunks/», но <code>state/sync_&lt;collection&gt;.json</code> на том же томе требует записи. Том монтируется rw; chunks/ — read-only по соглашению.</td>
+    <td><span class="chip ok">accepted</span></td>
+  </tr>
+  <tr>
+    <td>F-002</td><td><span class="chip warn">WARNING</span></td><td>5</td>
+    <td><code>sync.debounce_ms: &lt;n&gt;</code> без конкретного дефолта. План задаёт 1500ms (как <code>daemon.debounce_ms</code> в SP1).</td>
+    <td><span class="chip ok">accepted</span></td>
+  </tr>
+  <tr>
+    <td>F-003</td><td><span class="chip warn">WARNING</span></td><td>6</td>
+    <td>«Retry with backoff» без границ (число попыток, база). План: <code>retries=3</code>, экспонента <code>0.5·2^attempt</code>.</td>
+    <td><span class="chip ok">accepted</span></td>
+  </tr>
+</table>
+
+<div class="note">
+  <b>Сводка:</b> CRITICAL open: <b>0</b> · WARNING open: <b>0</b> (3 accepted) ·
+  <span class="verdict ok" style="color:var(--ok)">Вердикт: OK</span><br>
+  Все 3 WARNING-находки касаются формулировок спеки и закрываются решениями в плане (см. карту покрытия). Гейт IDD→SDD для записи плана открыт.
+</div>
+
+<h3>Chain</h3>
+<table class="legend">
+  <tr><td>intent</td><td><code>null</code> (каталог <code>docs/superpowers/intents/</code> отсутствует)</td></tr>
+  <tr><td>spec</td><td><code>docs/superpowers/specs/2026-06-20-sp2-embedding-sync-design.md</code> ✓ validated</td></tr>
+  <tr><td>plan →</td><td><code>docs/superpowers/plans/2026-06-20-sp2-embedding-sync.md</code> (next)</td></tr>
+</table>
+
+<footer>
+  Сгенерировано навыком <code>check-spec</code> → <code>html-report</code>. Self-contained, offline, dark/light.
+  Артефакт автогенерируемый — перезаписывается при следующем прогоне.
+</footer>
+</div>
+</body>
+</html>

@@ -6,3 +6,4 @@
 {"op":"init","source":"src/owaw/chunking.py","page":"chunking-and-storage.md","date":"2026-06-20"}
 {"op":"init","source":"src/owaw/cli.py","page":"cli-and-daemon.md","date":"2026-06-20"}
 {"op":"init","source":"pyproject.toml","page":"deployment.md","date":"2026-06-20"}
+{"op":"ingest","source":"CLAUDE.md","page":"development-workflow.md","date":"2026-06-20"}
