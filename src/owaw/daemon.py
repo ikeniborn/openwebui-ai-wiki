@@ -55,3 +55,14 @@ def watch(domain, debounce_ms: int, on_change: Callable[[set], None]) -> Observe
         observer.schedule(handler, root, recursive=True)
     observer.start()
     return observer
+
+
+def watch_paths(paths: list[str], debounce_ms: int, on_change: Callable[[set], None]) -> Observer:
+    """Observe arbitrary directories (recursive). Returns a started Observer (caller stops/joins)."""
+    debouncer = Debouncer(debounce_ms, on_change)
+    observer = Observer()
+    handler = _Handler(debouncer)
+    for root in paths:
+        observer.schedule(handler, root, recursive=True)
+    observer.start()
+    return observer
