@@ -22,3 +22,10 @@ def test_ensure_dirs_creates_tree(monkeypatch, tmp_path):
     assert (tmp_path / "wiki" / "infra").is_dir()
     assert (tmp_path / "chunks").is_dir()
     assert (tmp_path / "state").is_dir()
+
+
+def test_chunks_dir_and_sync_state_path(monkeypatch, tmp_path):
+    monkeypatch.setenv("OWAW_DATA_DIR", str(tmp_path))
+    from owaw import paths
+    assert paths.chunks_dir() == tmp_path / "chunks"
+    assert paths.sync_state_path("ai-wiki") == tmp_path / "state" / "sync_ai-wiki.json"
