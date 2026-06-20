@@ -39,5 +39,6 @@ Each subsystem gets its own spec → plan → implementation cycle. Brainstormin
 
 ## Status
 
-- SP1 — **in design** (brainstorming). Spec: `docs/superpowers/specs/`.
-- SP2, SP3 — planned.
+- SP1 — spec + plan complete; implementation in review (PR #1, branch `dev/sp1-wiki-engine`).
+- SP2 — design spec drafted (`docs/superpowers/specs/2026-06-20-sp2-embedding-sync-design.md`).
+- SP3 — design spec drafted (`docs/superpowers/specs/2026-06-20-sp3-openwebui-agent-design.md`).
