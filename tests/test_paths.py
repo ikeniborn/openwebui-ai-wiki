@@ -13,7 +13,7 @@ def test_layout_helpers(monkeypatch, tmp_path):
     assert paths.config_path() == tmp_path / "config.yaml"
     assert paths.wiki_dir("infra") == tmp_path / "wiki" / "infra"
     assert paths.chunks_path("infra") == tmp_path / "chunks" / "infra.jsonl"
-    assert paths.manifest_path() == tmp_path / "state" / "manifest.json"
+    assert paths.manifest_path("infra") == tmp_path / "state" / "manifest_infra.json"
 
 
 def test_ensure_dirs_creates_tree(monkeypatch, tmp_path):

@@ -2,14 +2,18 @@
 from __future__ import annotations
 
 import logging
+import os as _os
+import re as _re
+import shutil
 from pathlib import Path
 
+from owaw import paths as _paths
 from owaw.chunking import DEFAULT_CHUNKING, ChunkingConfig, build_chunk_inputs
 from owaw.chunkstore import ChunkStore
 from owaw.domains import Domain
 from owaw.entities import extract_entities
 from owaw.extract import UnsupportedFormat, extract_text
-from owaw.frontmatter import page_stem
+from owaw.frontmatter import page_stem, split_frontmatter
 from owaw.index import rebuild_index
 from owaw.manifest import Manifest
 from owaw.pages import read_existing_pages, synthesize_pages, write_page
@@ -48,12 +52,11 @@ def ingest_file(
 
     rebuild_index(wiki_dir, domain.name)
     manifest.mark(src)
+    manifest.save()
     return True
 
 
-# --- appended: multi-file drivers ---
-from owaw import paths as _paths
-
+# --- multi-file drivers ---
 
 def iter_source_files(domain: Domain):
     for root in domain.source_paths:
@@ -70,7 +73,7 @@ def ingest_domain(llm, domain: Domain, chunking: ChunkingConfig = DEFAULT_CHUNKI
     _paths.ensure_dirs(domain.id)
     wiki_dir = _paths.wiki_dir(domain.id)
     chunks = ChunkStore(_paths.chunks_path(domain.id), domain=domain.id)
-    manifest = Manifest.load(_paths.manifest_path())
+    manifest = Manifest.load(_paths.manifest_path(domain.id))
     reconcile_deletions(domain, wiki_dir, chunks, manifest)
     count = 0
     for f in iter_source_files(domain):
@@ -83,27 +86,20 @@ def ingest_domain(llm, domain: Domain, chunking: ChunkingConfig = DEFAULT_CHUNKI
 def rebuild_domain(llm, domain: Domain, chunking: ChunkingConfig = DEFAULT_CHUNKING,
                    today: str = "") -> int:
     """Drop the domain's wiki + chunks + manifest entries, then full re-ingest."""
-    import shutil
-
     wiki_dir = _paths.wiki_dir(domain.id)
     if wiki_dir.exists():
         shutil.rmtree(wiki_dir)
     chunks_path = _paths.chunks_path(domain.id)
     if chunks_path.exists():
         chunks_path.unlink()
-    manifest = Manifest.load(_paths.manifest_path())
+    manifest = Manifest.load(_paths.manifest_path(domain.id))
     for f in iter_source_files(domain):
         manifest.forget(f)
     manifest.save()
     return ingest_domain(llm, domain, chunking, today)
 
 
-# --- appended: source-deletion reconciliation ---
-import os as _os
-import re as _re
-
-from owaw.frontmatter import split_frontmatter
-
+# --- source-deletion reconciliation ---
 
 def _page_sources(page_text: str) -> list[str]:
     fm, _ = split_frontmatter(page_text)

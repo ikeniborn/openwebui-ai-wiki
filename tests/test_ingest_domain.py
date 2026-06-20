@@ -32,3 +32,18 @@ def test_ingest_domain_processes_each_changed_file(tmp_path, monkeypatch):
     n = ingest_domain(llm=object(), domain=_domain(src))
     assert n == 2
     assert sorted(processed) == ["a.md", "b.md"]
+
+
+def test_per_domain_manifests_are_separate(tmp_path, monkeypatch):
+    monkeypatch.setenv("OWAW_DATA_DIR", str(tmp_path / "data"))
+    monkeypatch.setattr(ingest_mod, "ingest_file", lambda llm, d, f, *a, **k: True)
+    sa = tmp_path / "sa"; sa.mkdir(); (sa / "x.md").write_text("x", encoding="utf-8")
+    sb = tmp_path / "sb"; sb.mkdir(); (sb / "y.md").write_text("y", encoding="utf-8")
+    da = Domain(id="a", name="A", wiki_folder="a", source_paths=[str(sa)], entity_types=[])
+    db = Domain(id="b", name="B", wiki_folder="b", source_paths=[str(sb)], entity_types=[])
+    ingest_domain(llm=object(), domain=da)
+    ingest_domain(llm=object(), domain=db)
+    from owaw import paths
+    assert paths.manifest_path("a") != paths.manifest_path("b")
+    assert paths.manifest_path("a").exists()
+    assert paths.manifest_path("b").exists()

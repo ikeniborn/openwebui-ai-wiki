@@ -25,8 +25,8 @@ def chunks_path(domain: str) -> Path:
     return data_dir() / "chunks" / f"{domain}.jsonl"
 
 
-def manifest_path() -> Path:
-    return data_dir() / "state" / "manifest.json"
+def manifest_path(domain: str) -> Path:
+    return data_dir() / "state" / f"manifest_{domain}.json"
 
 
 def ensure_dirs(domain: str) -> None:
