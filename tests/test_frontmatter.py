@@ -22,3 +22,17 @@ def test_entity_slug_ascii_snake():
 
 def test_page_stem():
     assert page_stem("infra", "Neural Networks") == "wiki_infra_neural_networks"
+
+
+def test_entity_slug_cyrillic_transliterated():
+    assert entity_slug("Прокси") == "proksi"
+    assert entity_slug("Прокси-сервер") == "proksi_server"
+    assert entity_slug("Сетевой мост") == "setevoy_most"
+
+
+def test_entity_slug_mixed_latin_cyrillic():
+    assert entity_slug("CPU кэш") == "cpu_kesh"
+
+
+def test_page_stem_cyrillic():
+    assert page_stem("infra", "Прокси") == "wiki_infra_proksi"
