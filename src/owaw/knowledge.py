@@ -59,13 +59,16 @@ class OpenWebUIKnowledgeClient:
         for attempt in range(self._retries):
             try:
                 resp = self._http.request(method, path, headers=headers, **kw)
-                if resp.status_code >= 500:
-                    raise httpx.HTTPStatusError("server error", request=resp.request, response=resp)
-                resp.raise_for_status()
-                return resp
-            except (httpx.TransportError, httpx.HTTPStatusError) as e:
+            except httpx.TransportError as e:
                 last = e
                 self._sleep(0.5 * (2 ** attempt))
+                continue
+            if resp.status_code >= 500:
+                last = httpx.HTTPStatusError("server error", request=resp.request, response=resp)
+                self._sleep(0.5 * (2 ** attempt))
+                continue
+            resp.raise_for_status()   # 4xx -> raises immediately, NOT retried
+            return resp
         raise RuntimeError(f"OpenWebUI request failed after {self._retries} tries: {last}")
 
     def _collection_id(self) -> str:
@@ -111,7 +114,7 @@ class OpenWebUIKnowledgeClient:
             m = f.get("meta") or {}
             h = m.get("file_hash")
             if not h:
-                name = m.get("name", "")
+                name = f.get("filename") or m.get("name", "")
                 h = name[:-3] if name.endswith(".md") else name
             if h:
                 out.append((f["id"], h))

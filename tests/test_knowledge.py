@@ -115,3 +115,36 @@ def test_add_retries_on_transient_5xx_then_succeeds():
     client = _client(handler, retries=3)
     assert client.add("h", "t", {}) == "file-1"
     assert calls["files"] == 2  # one 503, one success
+
+
+def test_add_does_not_retry_on_4xx():
+    calls = {"files": 0}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        p = request.url.path
+        if request.method == "GET" and p == "/api/v1/knowledge/":
+            return httpx.Response(200, json=[{"id": "cid", "name": "ai-wiki"}])
+        if request.method == "POST" and p == "/api/v1/files/":
+            calls["files"] += 1
+            return httpx.Response(404, json={"err": "nope"})
+        raise AssertionError(f"unexpected {request.method} {p}")
+
+    import pytest
+    client = _client(handler, retries=3)
+    with pytest.raises(httpx.HTTPStatusError):
+        client.add("h", "t", {})
+    assert calls["files"] == 1  # 4xx raised immediately, not retried
+
+
+def test_list_entries_fallback_to_top_level_filename():
+    def handler(request: httpx.Request) -> httpx.Response:
+        p = request.url.path
+        if request.method == "GET" and p == "/api/v1/knowledge/":
+            return httpx.Response(200, json=[{"id": "cid", "name": "ai-wiki"}])
+        if request.method == "GET" and p == "/api/v1/knowledge/cid":
+            return httpx.Response(200, json={"id": "cid", "files": [
+                {"id": "file-1", "filename": "h1.md", "meta": {}},
+            ]})
+        raise AssertionError(f"unexpected {request.method} {p}")
+
+    assert _client(handler).list_entries() == [("file-1", "h1")]
