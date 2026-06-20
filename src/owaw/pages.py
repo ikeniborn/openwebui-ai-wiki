@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from importlib import resources
+from pathlib import Path
 
 from owaw.domains import Domain
 from owaw.entities import Entity, entity_types_block
