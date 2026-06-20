@@ -7,3 +7,4 @@
 {"op":"init","source":"src/owaw/cli.py","page":"cli-and-daemon.md","date":"2026-06-20"}
 {"op":"init","source":"pyproject.toml","page":"deployment.md","date":"2026-06-20"}
 {"op":"ingest","source":"CLAUDE.md","page":"development-workflow.md","date":"2026-06-20"}
+{"op":"ingest","source":"src/owaw/sync.py,syncstate.py,knowledge.py,config.py,cli.py,daemon.py,docs/deploy","page":"embedding-and-sync.md","date":"2026-06-20"}
