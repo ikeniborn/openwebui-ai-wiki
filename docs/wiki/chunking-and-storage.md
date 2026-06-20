@@ -1,6 +1,6 @@
 # Chunking and storage
 
-The chunk-production path and the on-disk artifacts it writes: the section-aware chunker (`chunking.py`, a faithful port of `page-similarity.ts`), the JSONL chunk store (`chunkstore.py`), and the per-domain index (`index.py`). Driven by [[ingest-pipeline#Ingest pipeline]]; consumed downstream by SP2.
+The chunk-production path and the on-disk artifacts it writes: the section-aware chunker (`chunking.py`, a faithful port of `page-similarity.ts`), the JSONL chunk store (`chunkstore.py`), and the per-domain index (`index.py`). Driven by [[ingest-pipeline#Ingest pipeline]]; consumed downstream by [[embedding-and-sync#Desired set and diff (sync.py)]] (SP2).
 
 ## Section-aware chunking
 

@@ -1,3 +1,48 @@
+---
+review:
+  spec_hash: d32bd6eb200103a4
+  last_run: 2026-06-20
+  phases:
+    structure:    { status: passed }
+    coverage:     { status: passed }
+    clarity:      { status: passed }
+    consistency:  { status: passed }
+  findings:
+    - id: F-001
+      phase: coverage
+      severity: WARNING
+      section: "3. Architecture"
+      section_hash: 6bdd44d671bf30ef
+      text: >-
+        Data-dir volume is described as "read-only for chunks/", but the sync-state
+        file state/sync_<collection>.json lives on the same volume and requires writes.
+        The volume must be mounted rw; chunks/ is read-only by convention only.
+      verdict: accepted
+      verdict_at: 2026-06-20
+    - id: F-002
+      phase: clarity
+      severity: WARNING
+      section: "5. Configuration"
+      section_hash: 5795e142486e146a
+      text: >-
+        sync.debounce_ms is left as <n> with no concrete default. Plan defaults it to
+        1500ms (matching SP1's daemon.debounce_ms default).
+      verdict: accepted
+      verdict_at: 2026-06-20
+    - id: F-003
+      phase: clarity
+      severity: WARNING
+      section: "6. Error handling"
+      section_hash: 706b28ce92189f45
+      text: >-
+        "Retry with backoff" lacks explicit bounds (retry count, backoff base). Plan
+        fixes retries=3 with exponential backoff (0.5 * 2**attempt).
+      verdict: accepted
+      verdict_at: 2026-06-20
+chain:
+  intent: null
+---
+
 # SP2 — Embedding + Sync — Design
 
 - **Date:** 2026-06-20

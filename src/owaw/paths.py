@@ -29,6 +29,14 @@ def manifest_path(domain: str) -> Path:
     return data_dir() / "state" / f"manifest_{domain}.json"
 
 
+def chunks_dir() -> Path:
+    return data_dir() / "chunks"
+
+
+def sync_state_path(collection: str) -> Path:
+    return data_dir() / "state" / f"sync_{collection}.json"
+
+
 def ensure_dirs(domain: str) -> None:
     wiki_dir(domain).mkdir(parents=True, exist_ok=True)
     (data_dir() / "chunks").mkdir(parents=True, exist_ok=True)

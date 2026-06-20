@@ -8,7 +8,10 @@ from owaw.config import load_config
 from owaw.domains import Domain, add_domain, load_domains
 from owaw.ingest import ingest_domain, rebuild_domain
 from owaw.index import rebuild_index
+from owaw.knowledge import OpenWebUIKnowledgeClient
 from owaw.llm import LLM
+from owaw.sync import SyncEngine
+from owaw.syncstate import SyncState
 
 app = typer.Typer(help="openwebui-ai-wiki engine (SP1)")
 domain_app = typer.Typer(help="Manage domains")
@@ -25,6 +28,15 @@ def _get_domain(domain_id: str) -> Domain:
 def _llm() -> LLM:
     cfg = load_config(paths.config_path())
     return LLM.from_config(cfg.generation)
+
+
+def _sync_engine() -> SyncEngine:
+    cfg = load_config(paths.config_path())
+    if cfg.openwebui is None:
+        raise typer.BadParameter("no 'openwebui' section in config.yaml; required for sync")
+    client = OpenWebUIKnowledgeClient.from_config(cfg.openwebui, model=cfg.embedding.model)
+    state = SyncState.load(paths.sync_state_path(cfg.openwebui.collection))
+    return SyncEngine(client, state, paths.chunks_dir())
 
 
 @domain_app.command("add")
@@ -102,6 +114,46 @@ def watch(domain: str = typer.Option(None, help="Domain id; omit for all")):
             o.stop()
         for o in observers:
             o.join()
+
+
+@app.command()
+def sync():
+    """One-shot: full reconcile of the OpenWebUI collection against chunks/."""
+    try:
+        engine = _sync_engine()
+    except typer.BadParameter as exc:
+        typer.echo(f"Error: {exc}", err=False)
+        raise typer.Exit(code=1)
+    res = engine.reconcile()
+    typer.echo(f"synced: +{res.added} -{res.deleted} ={res.unchanged}")
+
+
+@app.command("sync-watch")
+def sync_watch():
+    """Daemon: reconcile on start, then sync on every chunks/ change (debounced)."""
+    import time
+    from owaw.daemon import watch_paths
+
+    cfg = load_config(paths.config_path())
+    engine = _sync_engine()
+    res = engine.reconcile()
+    typer.echo(f"[sync-watch] startup reconcile: +{res.added} -{res.deleted} ={res.unchanged}")
+
+    cdir = paths.chunks_dir()
+    cdir.mkdir(parents=True, exist_ok=True)
+
+    def _on_change(_changed):
+        r = engine.sync()
+        typer.echo(f"[sync-watch] synced: +{r.added} -{r.deleted}")
+
+    observer = watch_paths([str(cdir)], cfg.sync.debounce_ms, _on_change)
+    typer.echo(f"[sync-watch] watching {cdir}; Ctrl-C to stop")
+    try:
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        observer.stop()
+        observer.join()
 
 
 if __name__ == "__main__":

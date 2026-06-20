@@ -11,3 +11,12 @@ extraction:
   engine: docling
 daemon:
   debounce_ms: 1500
+openwebui:
+  base_url: "http://minipc-traefik-openwebui:8080"   # internal, proxy-net; no public route
+  collection: "ai-wiki"
+  api_token_env: OWAW_OPENWEBUI_TOKEN                 # value injected from secrets, never committed
+embedding:
+  model: "bge-m3"                                     # OpenWebUI RAG engine must point at this (LiteLLM);
+                                                      # bge-m3 is 1024-dim — changing it later forces a full re-index
+sync:
+  debounce_ms: 1500

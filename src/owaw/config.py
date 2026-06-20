@@ -17,11 +17,31 @@ class GenerationConfig:
 
 
 @dataclass(frozen=True)
+class OpenWebUIConfig:
+    base_url: str
+    collection: str
+    api_token_env: str = "OWAW_OPENWEBUI_TOKEN"
+
+
+@dataclass(frozen=True)
+class EmbeddingConfig:
+    model: str = "bge-m3"
+
+
+@dataclass(frozen=True)
+class SyncConfig:
+    debounce_ms: int = 1500
+
+
+@dataclass(frozen=True)
 class Config:
     generation: GenerationConfig
     chunking: ChunkingConfig
     extraction_engine: str
     debounce_ms: int
+    openwebui: OpenWebUIConfig | None = None
+    embedding: EmbeddingConfig = EmbeddingConfig()
+    sync: SyncConfig = SyncConfig()
 
 
 def load_config(path: Path) -> Config:
@@ -42,9 +62,22 @@ def load_config(path: Path) -> Config:
     )
     extraction_engine = (raw.get("extraction") or {}).get("engine", "docling")
     debounce_ms = (raw.get("daemon") or {}).get("debounce_ms", 1000)
+    ow_raw = raw.get("openwebui")
+    openwebui = None
+    if ow_raw:
+        openwebui = OpenWebUIConfig(
+            base_url=ow_raw["base_url"],
+            collection=ow_raw["collection"],
+            api_token_env=ow_raw.get("api_token_env", "OWAW_OPENWEBUI_TOKEN"),
+        )
+    embedding = EmbeddingConfig(model=(raw.get("embedding") or {}).get("model", "bge-m3"))
+    sync = SyncConfig(debounce_ms=(raw.get("sync") or {}).get("debounce_ms", 1500))
     return Config(
         generation=generation,
         chunking=chunking,
         extraction_engine=extraction_engine,
         debounce_ms=debounce_ms,
+        openwebui=openwebui,
+        embedding=embedding,
+        sync=sync,
     )
