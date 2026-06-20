@@ -24,6 +24,13 @@ owaw = "owaw.cli:app"
 [tool.hatch.build.targets.wheel]
 packages = ["src/owaw"]
 
+[tool.hatch.build.targets.wheel.shared-data]
+# prompts are shipped as package data alongside the Python files
+
+[tool.hatch.build.targets.wheel.force-include]
+"src/owaw/prompts/ingest_entities.md" = "owaw/prompts/ingest_entities.md"
+"src/owaw/prompts/ingest_pages.md" = "owaw/prompts/ingest_pages.md"
+
 [tool.pytest.ini_options]
 pythonpath = ["src"]
 testpaths = ["tests"]

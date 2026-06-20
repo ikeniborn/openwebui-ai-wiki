@@ -2,14 +2,12 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from pathlib import Path
+from importlib import resources
 
 from owaw.domains import Domain
 from owaw.entities import Entity, entity_types_block
 
-_PROMPT = (Path(__file__).resolve().parents[2] / "prompts" / "ingest_pages.md").read_text(
-    encoding="utf-8"
-)
+_PROMPT = resources.files("owaw.prompts").joinpath("ingest_pages.md").read_text(encoding="utf-8")
 
 
 @dataclass(frozen=True)
