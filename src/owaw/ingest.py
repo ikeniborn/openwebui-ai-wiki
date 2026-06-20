@@ -71,6 +71,7 @@ def ingest_domain(llm, domain: Domain, chunking: ChunkingConfig = DEFAULT_CHUNKI
     wiki_dir = _paths.wiki_dir(domain.id)
     chunks = ChunkStore(_paths.chunks_path(domain.id), domain=domain.id)
     manifest = Manifest.load(_paths.manifest_path())
+    reconcile_deletions(domain, wiki_dir, chunks, manifest)
     count = 0
     for f in iter_source_files(domain):
         if ingest_file(llm, domain, f, wiki_dir, chunks, manifest, chunking, today):
@@ -95,3 +96,49 @@ def rebuild_domain(llm, domain: Domain, chunking: ChunkingConfig = DEFAULT_CHUNK
         manifest.forget(f)
     manifest.save()
     return ingest_domain(llm, domain, chunking, today)
+
+
+# --- appended: source-deletion reconciliation ---
+import os as _os
+import re as _re
+
+from owaw.frontmatter import split_frontmatter
+
+
+def _page_sources(page_text: str) -> list[str]:
+    fm, _ = split_frontmatter(page_text)
+    out: list[str] = []
+    for entry in fm.get("wiki_sources", []) or []:
+        m = _re.match(r"\[\[(.+?)\]\]", str(entry).strip())
+        if m:
+            out.append(m.group(1))
+    return out
+
+
+def prune_source_pages(source_stem: str, wiki_dir: Path, chunks: ChunkStore) -> int:
+    removed = 0
+    for page in wiki_dir.glob("*.md"):
+        if page.stem == "_index":
+            continue
+        srcs = _page_sources(page.read_text(encoding="utf-8"))
+        if source_stem in srcs and len(srcs) <= 1:
+            page.unlink()
+            chunks.delete_page(page.stem)
+            removed += 1
+    return removed
+
+
+def _under_domain(src: Path, domain: Domain) -> bool:
+    s = str(src)
+    return any(s == r or s.startswith(str(Path(r)) + _os.sep) for r in domain.source_paths)
+
+
+def reconcile_deletions(domain: Domain, wiki_dir: Path, chunks: ChunkStore,
+                        manifest: Manifest) -> int:
+    pruned = 0
+    for src in manifest.tracked_paths():
+        if _under_domain(src, domain) and not src.exists():
+            prune_source_pages(src.stem, wiki_dir, chunks)
+            manifest.forget(src)
+            pruned += 1
+    return pruned

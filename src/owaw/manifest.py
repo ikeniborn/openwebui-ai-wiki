@@ -31,6 +31,9 @@ class Manifest:
     def forget(self, src: Path) -> None:
         self._hashes.pop(str(src), None)
 
+    def tracked_paths(self) -> list[Path]:
+        return [Path(k) for k in self._hashes]
+
     def save(self) -> None:
         self._path.parent.mkdir(parents=True, exist_ok=True)
         self._path.write_text(json.dumps(self._hashes, indent=2), encoding="utf-8")
