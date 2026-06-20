@@ -72,3 +72,27 @@ def test_sync_partial_failure_keeps_unfailed_in_state(tmp_path):
     res = SyncEngine(client, SyncState.load(statepath), tmp_path / "chunks").sync()
     assert res.added == 1
     assert SyncState.load(statepath).synced_hashes() == {"good"}  # only confirmed call persisted
+
+
+def test_reconcile_rebuilds_state_from_collection_then_converges(tmp_path):
+    # Collection already has h1 (entry e-existing) but local state file is empty/stale.
+    _write_jsonl(tmp_path / "chunks" / "infra.jsonl", [_rec("h1"), _rec("h2")])
+    client = FakeKnowledgeClient()
+    client.add("h1", "x", {})            # pre-existing collection entry, not in our state
+    statepath = tmp_path / "state" / "sync_ai-wiki.json"
+    eng = SyncEngine(client, SyncState.load(statepath), tmp_path / "chunks")
+    res = eng.reconcile()
+    # h1 already present -> not re-added; h2 added; nothing deleted.
+    assert (res.added, res.deleted) == (1, 0)
+    assert {h for _, h in client.list_entries()} == {"h1", "h2"}
+
+
+def test_reconcile_deletes_orphan_entries_not_in_desired(tmp_path):
+    _write_jsonl(tmp_path / "chunks" / "infra.jsonl", [_rec("h1")])
+    client = FakeKnowledgeClient()
+    client.add("h1", "x", {})
+    client.add("orphan", "y", {})        # in collection, no longer in any JSONL
+    statepath = tmp_path / "state" / "sync_ai-wiki.json"
+    res = SyncEngine(client, SyncState.load(statepath), tmp_path / "chunks").reconcile()
+    assert (res.added, res.deleted) == (0, 1)
+    assert {h for _, h in client.list_entries()} == {"h1"}

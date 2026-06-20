@@ -90,3 +90,14 @@ class SyncEngine:
         self._state.save()
         unchanged = len(set(desired) & self._state.synced_hashes()) - added
         return SyncResult(added=added, deleted=deleted, unchanged=unchanged)
+
+    def reconcile(self) -> "SyncResult":
+        """Full reconcile: trust the live collection as state, then converge to desired.
+
+        Rebuilds sync-state from the collection listing (handles stale state and
+        orphan entries), persists it, then runs an ordinary sync().
+        """
+        present = self._client.list_entries()
+        self._state.replace({h: eid for eid, h in present})
+        self._state.save()
+        return self.sync()
