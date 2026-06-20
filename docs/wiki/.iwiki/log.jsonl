@@ -1,0 +1,8 @@
+{"op":"init","source":"README.md","page":"architecture.md","date":"2026-06-20"}
+{"op":"init","source":"src/owaw/domains.py","page":"domain-model.md","date":"2026-06-20"}
+{"op":"init","source":"src/owaw/ingest.py","page":"ingest-pipeline.md","date":"2026-06-20"}
+{"op":"init","source":"src/owaw/pages.py","page":"entity-page-synthesis.md","date":"2026-06-20"}
+{"op":"init","source":"src/owaw/llm.py","page":"llm-client.md","date":"2026-06-20"}
+{"op":"init","source":"src/owaw/chunking.py","page":"chunking-and-storage.md","date":"2026-06-20"}
+{"op":"init","source":"src/owaw/cli.py","page":"cli-and-daemon.md","date":"2026-06-20"}
+{"op":"init","source":"pyproject.toml","page":"deployment.md","date":"2026-06-20"}
