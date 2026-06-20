@@ -76,5 +76,33 @@ def rebuild(domain: str = typer.Option(...)):
     typer.echo(f"rebuilt '{d.id}': {n} file(s)")
 
 
+@app.command()
+def watch(domain: str = typer.Option(None, help="Domain id; omit for all")):
+    import time
+    from owaw import paths as _paths
+    from owaw.daemon import watch as watch_domain
+
+    domains = [_get_domain(domain)] if domain else load_domains(_paths.domains_path())
+    cfg = load_config(_paths.config_path())
+    llm = _llm()
+
+    def make_handler(d):
+        def _on_change(_paths_changed):
+            n = ingest_domain(llm, d, chunking=cfg.chunking)
+            typer.echo(f"[watch] {d.id}: reingested, {n} file(s) changed")
+        return _on_change
+
+    observers = [watch_domain(d, cfg.debounce_ms, make_handler(d)) for d in domains]
+    typer.echo(f"watching {len(domains)} domain(s); Ctrl-C to stop")
+    try:
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        for o in observers:
+            o.stop()
+        for o in observers:
+            o.join()
+
+
 if __name__ == "__main__":
     app()
