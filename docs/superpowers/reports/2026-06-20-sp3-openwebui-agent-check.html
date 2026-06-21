@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Проверка плана — SP3 OpenWebUI Agent</title>
+<style>
+  :root{
+    --bg:#f6f7fb; --surface:#ffffff; --fg:#2b2b3a; --muted:#6b6b80;
+    --accent:#5c6bc0; --accent-2:#3949ab; --border:#d6d8e6; --line:#9aa0b4; --zebra:#eef0f8;
+    --ok:#43a047; --ok-2:#2e7d32; --warn:#fb8c00; --warn-2:#ef6c00; --danger:#e53935; --danger-2:#c62828;
+    --shadow:rgba(40,40,80,.18);
+  }
+  body:has(#theme-toggle:checked){
+    --bg:#181825; --surface:#262637; --fg:#cdd6f4; --muted:#a6adc8;
+    --accent:#89b4fa; --accent-2:#5e95f0; --border:#3a3b52; --line:#6c7086; --zebra:#21222f;
+    --ok:#a6e3a1; --ok-2:#74c46e; --warn:#f9e2af; --warn-2:#f5c95b; --danger:#f38ba8; --danger-2:#e8638a;
+    --shadow:rgba(0,0,0,.45);
+  }
+  body{
+    margin:0 auto; padding:1.5rem 2rem 4rem; max-width:1080px;
+    font:16px/1.55 system-ui, sans-serif;
+    background:
+      radial-gradient(1200px 500px at 100% -10%, color-mix(in srgb,var(--accent) 10%, transparent), transparent),
+      var(--bg);
+    color:var(--fg);
+    transition:background .3s, color .3s;
+  }
+  .theme-btn{
+    position:sticky; top:.5rem; float:right; z-index:10;
+    cursor:pointer; user-select:none;
+    padding:.25rem .6rem; border:1px solid var(--border); border-radius:6px;
+    background:var(--surface);
+  }
+  h1{font-size:1.7rem; margin:.2rem 0 .3rem; color:var(--accent-2);}
+  h2{font-size:1.25rem; margin:2rem 0 .6rem; border-bottom:2px solid var(--border); padding-bottom:.25rem;}
+  h3{font-size:1.05rem; margin:1.3rem 0 .5rem; color:var(--accent-2);}
+  .sub{color:var(--muted); margin-top:0;}
+  table{border-collapse:collapse; width:100%; margin:.6rem 0 1rem; background:var(--surface);
+    box-shadow:0 1px 4px var(--shadow); border-radius:8px; overflow:hidden;}
+  th,td{border:1px solid var(--border); padding:.45rem .6rem; text-align:left; vertical-align:top; font-size:.92rem;}
+  th{background:color-mix(in srgb,var(--accent) 16%, var(--surface)); color:var(--fg);}
+  tbody tr:nth-child(even){background:var(--zebra);}
+  code{background:color-mix(in srgb,var(--accent) 12%, var(--surface)); padding:.05rem .3rem; border-radius:4px;
+    font:13px/1.4 ui-monospace, monospace;}
+  .badge{display:inline-block; padding:.08rem .5rem; border-radius:10px; font-size:.8rem; font-weight:600;}
+  .b-ok{background:color-mix(in srgb,var(--ok) 24%, var(--surface)); color:var(--ok-2);}
+  .b-warn{background:color-mix(in srgb,var(--warn) 24%, var(--surface)); color:var(--warn-2);}
+  .b-danger{background:color-mix(in srgb,var(--danger) 24%, var(--surface)); color:var(--danger-2);}
+  .b-info{background:color-mix(in srgb,var(--accent) 20%, var(--surface)); color:var(--accent-2);}
+  .note{background:color-mix(in srgb,var(--accent) 10%, var(--surface)); border-left:4px solid var(--accent);
+    padding:.6rem .9rem; border-radius:6px; margin:.8rem 0;}
+  .note.ok{border-left-color:var(--ok);}
+  .meta{font-size:.85rem; color:var(--muted);}
+  figure{margin:1rem 0; padding:1rem; background:var(--surface); border:1px solid var(--border);
+    border-radius:8px; box-shadow:0 1px 4px var(--shadow);}
+  figcaption{color:var(--muted); font-size:.85rem; margin-top:.5rem; text-align:center;}
+  .legend{font-size:.82rem; color:var(--muted); margin:.4rem 0;}
+  .dot{display:inline-block; width:.7rem; height:.7rem; border-radius:50%; vertical-align:middle; margin-right:.25rem;}
+  .verdict{font-size:1.15rem; font-weight:700; padding:.7rem 1rem; border-radius:8px;
+    background:color-mix(in srgb,var(--ok) 18%, var(--surface)); color:var(--ok-2);
+    border:1px solid var(--ok); display:inline-block; margin:.5rem 0;}
+  .chain{font-family:ui-monospace, monospace; font-size:.9rem; background:var(--surface);
+    border:1px dashed var(--border); padding:.5rem .8rem; border-radius:6px;}
+  .mtx td.hit{background:color-mix(in srgb,var(--accent) 22%, var(--surface)); text-align:center; font-weight:600;}
+  .mtx td.cr{text-align:center; color:var(--muted);}
+  .mtx th.rot{font-size:.8rem;}
+</style>
+</head>
+<body>
+<input type="checkbox" id="theme-toggle" hidden>
+<label for="theme-toggle" class="theme-btn" title="Светлая / тёмная тема">🌙 / ☀️</label>
+
+<main class="report">
+  <h1>Проверка плана — SP3 «OpenWebUI Agent»</h1>
+  <p class="sub">Отчёт навыка <code>check-plan</code> · дата прогона: 2026-06-21</p>
+
+  <div class="note ok">
+    <strong>Итог:</strong> план проходит гейт. Все 5 фаз — <span class="badge b-ok">passed</span>.
+    Открытых CRITICAL — 0, открытых WARNING — 0, findings по плану — нет.
+  </div>
+
+  <!-- ================= SECTION 1 ================= -->
+  <h2>1. Резюме плана — задачи и критерии готовности (DoD)</h2>
+  <table>
+    <thead>
+      <tr><th style="width:3rem;">#</th><th>Задача</th><th>Критерий готовности (DoD)</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>1</td>
+        <td><strong>Config — <code>AgentConfig</code> + sample-секция</strong><br><span class="meta">src/owaw/config.py, tests/test_config.py, docs/deploy/config.sample.yaml</span></td>
+        <td><code>tests/test_config.py</code> PASS — 3 новых теста: парсинг <code>agent:</code>, дефолты, отсутствие секции → <code>None</code>.</td>
+      </tr>
+      <tr>
+        <td>2</td>
+        <td><strong>Doc Tool — самодостаточный jailed-ридер</strong><br><span class="meta">src/owaw/owui/__init__.py, doc_tool.py, tests/test_doc_tool.py</span></td>
+        <td><code>tests/test_doc_tool.py</code> PASS — 14 тестов: отказ на <code>../</code> и абсолютный escape, list/read/search, обрезка по cap, defer PDF, бинарь, missing, guard самодостаточности, методы <code>Tools</code> через valves.</td>
+      </tr>
+      <tr>
+        <td>3</td>
+        <td><strong>Порт system-prompt + поставка как package-data</strong><br><span class="meta">src/owaw/prompts/agent_query.md, pyproject.toml, tests/test_doc_tool.py</span></td>
+        <td><code>test_package_data_loadable</code> PASS (всего 15 тестов); <code>agent_query.md</code> загружается через <code>importlib.resources</code> после editable-reinstall.</td>
+      </tr>
+      <tr>
+        <td>4</td>
+        <td><strong>Validation spike — API OpenWebUI Tools/Models/access</strong><br><span class="meta">docs/superpowers/specs/2026-06-20-sp3-openwebui-api-findings.md</span></td>
+        <td>Findings-документ: по каждому эндпоинту method/path/JSON-body + имя access-поля + список «Deltas for Task 5» (research, без TDD).</td>
+      </tr>
+      <tr>
+        <td>5</td>
+        <td><strong>Provisioner — upsert Tool + Workspace Model</strong><br><span class="meta">src/owaw/owui/provision.py, tests/test_provision.py</span></td>
+        <td><code>tests/test_provision.py</code> PASS — 5 тестов на <code>MockTransport</code>: upsert tool create/update, resolve collection, upsert model (knowledge+tool+prompt), end-to-end.</td>
+      </tr>
+      <tr>
+        <td>6</td>
+        <td><strong>CLI — <code>owaw owui-provision</code></strong><br><span class="meta">src/owaw/cli.py, tests/test_provision_cli.py</span></td>
+        <td><code>tests/test_provision_cli.py</code> PASS — 2 теста: вызов provisioner; ошибка при отсутствии секции <code>agent</code>.</td>
+      </tr>
+      <tr>
+        <td>7</td>
+        <td><strong>Deploy — монтирования OpenWebUI + гайд + ручной E2E</strong><br><span class="meta">docs/deploy/sp3-openwebui-agent.md</span></td>
+        <td>Написан <code>docs/deploy/sp3-openwebui-agent.md</code>; полный набор тестов зелёный.</td>
+      </tr>
+      <tr>
+        <td>8</td>
+        <td><strong>Финал — регенерация wiki (iwiki-ingest) + iwiki-lint + полный прогон</strong><br><span class="meta">docs/wiki/ (генерируется iwiki)</span></td>
+        <td>Полный набор тестов PASS; нет битых <code>[[refs]]</code>, orphan- и stale-страниц.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- ================= SECTION 2 ================= -->
+  <h2>2. Зависимости и пересечения шагов</h2>
+
+  <h3>2a. Граф зависимостей задач</h3>
+  <p class="legend">Ребро M → N означает «результат задачи M используется в задаче N» (M &lt; N). Циклов и нарушений порядка не обнаружено — все рёбра штатные.</p>
+  <figure class="rpt-graph">
+    <svg viewBox="0 0 760 360" width="100%" role="img" aria-label="Граф зависимостей задач SP3">
+      <defs>
+        <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="var(--line)"/>
+        </marker>
+        <marker id="arrowOk" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="var(--ok)"/>
+        </marker>
+      </defs>
+
+      <!-- edges to Task 5 -->
+      <line x1="95"  y1="70"  x2="365" y2="160" stroke="var(--line)" stroke-width="2" marker-end="url(#arrow)"/>
+      <line x1="95"  y1="140" x2="365" y2="168" stroke="var(--line)" stroke-width="2" marker-end="url(#arrow)"/>
+      <line x1="95"  y1="210" x2="365" y2="176" stroke="var(--line)" stroke-width="2" marker-end="url(#arrow)"/>
+      <line x1="95"  y1="280" x2="365" y2="184" stroke="var(--line)" stroke-width="2" marker-end="url(#arrow)"/>
+      <!-- 1 -> 6 -->
+      <line x1="95"  y1="70"  x2="525" y2="252" stroke="var(--line)" stroke-width="2" marker-end="url(#arrow)"/>
+      <!-- 5 -> 6 -->
+      <line x1="425" y1="180" x2="525" y2="250" stroke="var(--line)" stroke-width="2" marker-end="url(#arrow)"/>
+      <!-- 6 -> 7 -->
+      <line x1="565" y1="260" x2="615" y2="120" stroke="var(--line)" stroke-width="2" marker-end="url(#arrow)"/>
+      <!-- 7 -> 8 (final gate) -->
+      <line x1="655" y1="110" x2="690" y2="262" stroke="var(--ok)" stroke-width="2.5" marker-end="url(#arrowOk)"/>
+      <!-- code tasks -> 8 (final full-suite gate) -->
+      <line x1="95"  y1="80"  x2="675" y2="285" stroke="var(--ok)" stroke-width="1.4" stroke-dasharray="4 4" marker-end="url(#arrowOk)"/>
+      <line x1="95"  y1="150" x2="675" y2="290" stroke="var(--ok)" stroke-width="1.4" stroke-dasharray="4 4" marker-end="url(#arrowOk)"/>
+      <line x1="95"  y1="220" x2="675" y2="295" stroke="var(--ok)" stroke-width="1.4" stroke-dasharray="4 4" marker-end="url(#arrowOk)"/>
+      <line x1="425" y1="195" x2="675" y2="298" stroke="var(--ok)" stroke-width="1.4" stroke-dasharray="4 4" marker-end="url(#arrowOk)"/>
+      <line x1="565" y1="275" x2="678" y2="300" stroke="var(--ok)" stroke-width="1.4" stroke-dasharray="4 4" marker-end="url(#arrowOk)"/>
+
+      <!-- nodes -->
+      <g font-size="13" font-weight="700" text-anchor="middle">
+        <g><circle cx="55"  cy="70"  r="26" fill="var(--surface)" stroke="var(--accent)" stroke-width="2"/><text x="55"  y="66" fill="var(--fg)">T1</text><text x="55" y="82" fill="var(--muted)" font-size="9" font-weight="400">config</text></g>
+        <g><circle cx="55"  cy="140" r="26" fill="var(--surface)" stroke="var(--accent)" stroke-width="2"/><text x="55"  y="136" fill="var(--fg)">T2</text><text x="55" y="152" fill="var(--muted)" font-size="9" font-weight="400">doc_tool</text></g>
+        <g><circle cx="55"  cy="210" r="26" fill="var(--surface)" stroke="var(--accent)" stroke-width="2"/><text x="55"  y="206" fill="var(--fg)">T3</text><text x="55" y="222" fill="var(--muted)" font-size="9" font-weight="400">prompt</text></g>
+        <g><circle cx="55"  cy="280" r="26" fill="var(--surface)" stroke="var(--accent)" stroke-width="2"/><text x="55"  y="276" fill="var(--fg)">T4</text><text x="55" y="292" fill="var(--muted)" font-size="9" font-weight="400">spike</text></g>
+        <g><circle cx="395" cy="180" r="30" fill="var(--surface)" stroke="var(--accent-2)" stroke-width="2.5"/><text x="395" y="176" fill="var(--fg)">T5</text><text x="395" y="192" fill="var(--muted)" font-size="9" font-weight="400">provision</text></g>
+        <g><circle cx="545" cy="262" r="26" fill="var(--surface)" stroke="var(--accent)" stroke-width="2"/><text x="545" y="258" fill="var(--fg)">T6</text><text x="545" y="274" fill="var(--muted)" font-size="9" font-weight="400">CLI</text></g>
+        <g><circle cx="635" cy="105" r="26" fill="var(--surface)" stroke="var(--accent)" stroke-width="2"/><text x="635" y="101" fill="var(--fg)">T7</text><text x="635" y="117" fill="var(--muted)" font-size="9" font-weight="400">deploy</text></g>
+        <g><circle cx="700" cy="285" r="28" fill="var(--surface)" stroke="var(--ok)" stroke-width="2.5"/><text x="700" y="281" fill="var(--fg)">T8</text><text x="700" y="297" fill="var(--muted)" font-size="9" font-weight="400">финал</text></g>
+      </g>
+    </svg>
+    <figcaption>
+      <span class="dot" style="background:var(--line)"></span>зависимость кода/данных &nbsp;
+      <span class="dot" style="background:var(--ok)"></span>финальный гейт T8 (полный прогон зависит от всех кодовых задач)
+    </figcaption>
+  </figure>
+
+  <h3>2b. Матрица пересечений по артефактам</h3>
+  <p class="legend">Закрашенная ячейка — задача затрагивает файл/артефакт. Пересечение = более одной отметки в строке.</p>
+  <table class="mtx">
+    <thead>
+      <tr>
+        <th>Артефакт</th>
+        <th class="rot">T1</th><th class="rot">T2</th><th class="rot">T3</th><th class="rot">T4</th><th class="rot">T5</th><th class="rot">T6</th><th class="rot">T7</th><th class="rot">T8</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td><code>src/owaw/config.py</code></td><td class="hit">●</td><td class="cr">·</td><td class="cr">·</td><td class="cr">·</td><td class="cr">·</td><td class="cr">·</td><td class="cr">·</td><td class="cr">·</td></tr>
+      <tr><td><code>tests/test_config.py</code></td><td class="hit">●</td><td class="cr">·</td><td class="cr">·</td><td class="cr">·</td><td class="cr">·</td><td class="cr">·</td><td class="cr">·</td><td class="cr">·</td></tr>
+      <tr><td><code>docs/deploy/config.sample.yaml</code></td><td class="hit">●</td><td class="cr">·</td><td class="cr">·</td><td class="cr">·</td><td class="cr">·</td><td class="cr">·</td><td class="cr">·</td><td class="cr">·</td></tr>
+      <tr><td><code>src/owaw/owui/doc_tool.py</code></td><td class="cr">·</td><td class="hit">создаёт</td><td class="cr">·</td><td class="cr">·</td><td class="hit">читает</td><td class="cr">·</td><td class="cr">·</td><td class="cr">·</td></tr>
+      <tr><td><code>tests/test_doc_tool.py</code></td><td class="cr">·</td><td class="hit">создаёт</td><td class="hit">дополняет</td><td class="cr">·</td><td class="cr">·</td><td class="cr">·</td><td class="cr">·</td><td class="cr">·</td></tr>
+      <tr><td><code>src/owaw/prompts/agent_query.md</code></td><td class="cr">·</td><td class="cr">·</td><td class="hit">создаёт</td><td class="cr">·</td><td class="hit">читает</td><td class="cr">·</td><td class="cr">·</td><td class="cr">·</td></tr>
+      <tr><td><code>pyproject.toml</code></td><td class="cr">·</td><td class="cr">·</td><td class="hit">●</td><td class="cr">·</td><td class="cr">·</td><td class="cr">·</td><td class="cr">·</td><td class="cr">·</td></tr>
+      <tr><td><code>src/owaw/owui/provision.py</code></td><td class="cr">·</td><td class="cr">·</td><td class="cr">·</td><td class="cr">·</td><td class="hit">●</td><td class="cr">·</td><td class="cr">·</td><td class="cr">·</td></tr>
+      <tr><td><code>tests/test_provision.py</code></td><td class="cr">·</td><td class="cr">·</td><td class="cr">·</td><td class="cr">·</td><td class="hit">●</td><td class="cr">·</td><td class="cr">·</td><td class="cr">·</td></tr>
+      <tr><td><code>src/owaw/cli.py</code></td><td class="cr">·</td><td class="cr">·</td><td class="cr">·</td><td class="cr">·</td><td class="cr">·</td><td class="hit">●</td><td class="cr">·</td><td class="cr">·</td></tr>
+      <tr><td><code>tests/test_provision_cli.py</code></td><td class="cr">·</td><td class="cr">·</td><td class="cr">·</td><td class="cr">·</td><td class="cr">·</td><td class="hit">●</td><td class="cr">·</td><td class="cr">·</td></tr>
+      <tr><td><code>docs/deploy/sp3-openwebui-agent.md</code></td><td class="cr">·</td><td class="cr">·</td><td class="cr">·</td><td class="cr">·</td><td class="cr">·</td><td class="cr">·</td><td class="hit">●</td><td class="cr">·</td></tr>
+      <tr><td><code>…/sp3-openwebui-api-findings.md</code></td><td class="cr">·</td><td class="cr">·</td><td class="cr">·</td><td class="hit">создаёт</td><td class="hit">читает</td><td class="cr">·</td><td class="cr">·</td><td class="cr">·</td></tr>
+    </tbody>
+  </table>
+  <div class="note">
+    <strong>Пересечения по артефактам (≥2 задачи):</strong>
+    <code>doc_tool.py</code> (T2 создаёт → T5 читает), <code>agent_query.md</code> (T3 создаёт → T5 читает),
+    <code>test_doc_tool.py</code> (T2 создаёт → T3 дополняет), findings-doc (T4 создаёт → T5 потребляет «Deltas»).
+    Все пересечения упорядочены (создатель раньше потребителя) — конфликтов нет.
+  </div>
+  <div class="note">
+    <strong>Пересечение по покрытию требований:</strong> требование спеки «Workspace Model»
+    закрывается несколькими задачами — T1 (base_model в конфиге), T3 (system-prompt),
+    T5 (provisioner: knowledge + tool + public), T6 (CLI). Это намеренная декомпозиция, не дубль.
+  </div>
+
+  <!-- ================= SECTION 3 ================= -->
+  <h2>3. Результаты проверки</h2>
+
+  <h3>Файлы</h3>
+  <table>
+    <tbody>
+      <tr><th style="width:9rem;">План</th><td><code>docs/superpowers/plans/2026-06-20-sp3-openwebui-agent.md</code><br><span class="meta">plan_hash: <code>7ed975680a617e3e</code> · prev: — (первый прогон)</span></td></tr>
+      <tr><th>Спека</th><td><code>docs/superpowers/specs/2026-06-20-sp3-openwebui-agent-design.md</code><br><span class="meta">spec_hash: <code>3055a1f4b76186da</code> · не менялась с момента собственного одобренного review</span></td></tr>
+    </tbody>
+  </table>
+
+  <h3>Статусы фаз</h3>
+  <table>
+    <thead><tr><th>Фаза</th><th>Статус</th><th>Новые findings</th></tr></thead>
+    <tbody>
+      <tr><td>1 · structure (плейсхолдеры, нумерация, дубли заголовков)</td><td><span class="badge b-ok">passed</span></td><td>0</td></tr>
+      <tr><td>2 · coverage (требование↔шаг в обе стороны)</td><td><span class="badge b-ok">passed</span></td><td>0</td></tr>
+      <tr><td>3 · dependencies (порядок, циклы, доступность артефактов)</td><td><span class="badge b-ok">passed</span></td><td>0</td></tr>
+      <tr><td>4 · verifiability (DoD, команды проверки, ожидаемый вывод)</td><td><span class="badge b-ok">passed</span></td><td>0</td></tr>
+      <tr><td>5 · consistency (хеши секций план↔спека)</td><td><span class="badge b-ok">passed</span></td><td>0</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Findings</h3>
+  <table>
+    <thead><tr><th>id</th><th>severity</th><th>секция</th><th>текст</th><th>verdict</th></tr></thead>
+    <tbody>
+      <tr><td colspan="5" style="text-align:center; color:var(--muted);">Findings по плану отсутствуют (0).</td></tr>
+    </tbody>
+  </table>
+
+  <div class="note">
+    <strong>Контекст:</strong> план проактивно закрывает три открытых рекомендательных findings,
+    унаследованных из frontmatter <em>спеки</em> (это findings спеки, не плана):
+    <ul>
+      <li><span class="badge b-warn">WARNING</span> spec F-001 (несогласованность grep/ripgrep) → разрешено в пользу pure-Python; девиация задокументирована в «Design decisions».</li>
+      <li><span class="badge b-warn">WARNING</span> spec F-002 (неколичественные cap'ы) → квантифицировано: <code>max_read_bytes=100000</code>, <code>max_results=20</code>, <code>base_model</code> из конфига (T1).</li>
+      <li><span class="badge b-info">INFO</span> spec F-003 (нет теста shared-visibility) → добавлено в ручной E2E-чеклист T7.</li>
+    </ul>
+  </div>
+
+  <h3>Сводка</h3>
+  <table>
+    <tbody>
+      <tr><th style="width:14rem;">CRITICAL open</th><td>0</td></tr>
+      <tr><th>WARNING open</th><td>0</td></tr>
+      <tr><th>Findings по плану</th><td>0</td></tr>
+    </tbody>
+  </table>
+
+  <p class="verdict">Вердикт: OK — план проходит гейт.</p>
+
+  <h3>Цепочка</h3>
+  <p class="chain">intent (null) → docs/superpowers/specs/2026-06-20-sp3-openwebui-agent-design.md → docs/superpowers/plans/2026-06-20-sp3-openwebui-agent.md</p>
+
+  <p class="meta">Автогенерируемый артефакт навыка <code>check-plan</code>. Текст отчёта — на русском; документация и код проекта — на английском.</p>
+</main>
+</body>
+</html>
