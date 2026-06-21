@@ -85,11 +85,13 @@ def test_search_docs_respects_max_results(tmp_path):
 def test_search_docs_jails_symlink_escape(tmp_path):
     roots = _tree(tmp_path)
     secret = tmp_path / "outside.md"          # outside any root
-    secret.write_text("TOPSECRETLEAK\n", encoding="utf-8")
+    secret.write_text("UNIQUETOKEN\n", encoding="utf-8")
     (roots[0] / "link.md").symlink_to(secret)  # symlink inside the root -> outside
-    out = _search_docs(roots, "TOPSECRETLEAK")
-    assert "TOPSECRETLEAK" not in out
-    assert "no matches" in out
+    out = _search_docs(roots, "UNIQUETOKEN")
+    # the escaping symlink is not searched: no hit line, only the no-match message
+    # (which echoes the query, so assert on the absence of a file hit instead of the token)
+    assert "link.md" not in out
+    assert out == "no matches for: UNIQUETOKEN"
     # consistency: read_doc rejects the same escaping symlink
     with pytest.raises(ValueError):
         _read_doc(roots, "link.md")
