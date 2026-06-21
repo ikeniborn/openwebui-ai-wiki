@@ -84,6 +84,10 @@ def test_load_config_parses_agent(tmp_path):
     )
     cfg = load_config(tmp_path / "config.yaml")
     assert cfg.agent.base_model == "gpt-4o"
+    assert cfg.agent.model_id == "ai-wiki-agent"
+    assert cfg.agent.model_name == "Doc Agent"
+    assert cfg.agent.tool_id == "wiki_docs"
+    assert cfg.agent.tool_name == "Wiki Docs"
     assert cfg.agent.doc_roots == ("/data/wiki", "/data/sources")
     assert cfg.agent.max_read_bytes == 50000
     assert cfg.agent.max_results == 10
@@ -98,9 +102,12 @@ def test_load_config_agent_optional_with_defaults(tmp_path):
     )
     cfg = load_config(tmp_path / "config.yaml")
     assert cfg.agent.model_id == "ai-wiki-agent"
+    assert cfg.agent.model_name == "Doc Agent"
     assert cfg.agent.tool_id == "wiki_docs"
+    assert cfg.agent.tool_name == "Wiki Docs"
     assert cfg.agent.doc_roots == ("/data/wiki", "/data/sources")
     assert cfg.agent.max_read_bytes == 100_000
+    assert cfg.agent.max_results == 20
     assert cfg.agent.public is True
 
 
