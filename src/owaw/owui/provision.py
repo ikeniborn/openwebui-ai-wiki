@@ -57,7 +57,11 @@ class OpenWebUIProvisioner:
         raise RuntimeError(f"OpenWebUI request failed after {self._retries} tries: {last}")
 
     def _exists(self, get_path: str) -> bool:
-        """True if the resource exists; False on 404. GET-based existence check (Task 4 delta)."""
+        """True if the resource exists; False on 404. GET-based existence check (Task 4 delta).
+
+        Non-404 errors (other 4xx, or RuntimeError after exhausted 5xx/transport retries)
+        propagate — a failed existence check aborts the upsert rather than masking it.
+        """
         try:
             self._request("GET", get_path)
             return True
@@ -97,7 +101,6 @@ class OpenWebUIProvisioner:
             "description": "AI wiki documentation agent",
             "toolIds": [tool_id],
             "knowledge": [],
-            "capabilities": {"builtin_tools": True, "file_context": True},
         }
         if collection_id:
             meta["knowledge"] = [

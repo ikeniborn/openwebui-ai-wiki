@@ -68,6 +68,7 @@ def test_upsert_model_attaches_knowledge_tool_and_prompt():
     def handler(request):
         p = request.url.path
         if request.method == "GET" and p == "/api/v1/models/model":
+            assert dict(request.url.params).get("id") == "ai-wiki-agent"
             return httpx.Response(404, json={"detail": "not found"})
         if p == "/api/v1/models/create":
             body = json.loads(request.content)
@@ -106,6 +107,7 @@ def test_provision_agent_end_to_end():
         if p == "/api/v1/knowledge/":
             return httpx.Response(200, json=[{"id": "cid", "name": "ai-wiki"}])
         if request.method == "GET" and p == "/api/v1/models/model":
+            assert dict(request.url.params).get("id") == "ai-wiki-agent"
             return httpx.Response(404, json={})
         if p == "/api/v1/models/create":
             return httpx.Response(200, json={"id": "ai-wiki-agent"})
