@@ -20,3 +20,15 @@ embedding:
                                                       # bge-m3 is 1024-dim — changing it later forces a full re-index
 sync:
   debounce_ms: 1500
+agent:
+  base_model: "<litellm-chat-model-id>"   # the LiteLLM chat model the Doc Agent wraps
+  model_id: "ai-wiki-agent"               # OpenWebUI model id
+  model_name: "Doc Agent"
+  tool_id: "wiki_docs"
+  tool_name: "Wiki Docs"
+  doc_roots:                              # paths INSIDE the OpenWebUI container (mounted :ro)
+    - /data/wiki
+    - /data/sources
+  max_read_bytes: 100000                  # read_doc truncation cap
+  max_results: 20                         # search_docs result cap
+  public: true                            # share the agent + tool with all users
