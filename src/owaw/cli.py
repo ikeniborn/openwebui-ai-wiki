@@ -156,5 +156,24 @@ def sync_watch():
         observer.join()
 
 
+@app.command("owui-provision")
+def owui_provision():
+    """Create/update the OpenWebUI Doc Agent (Tool + Workspace Model)."""
+    from owaw.owui.provision import provision_agent
+
+    cfg = load_config(paths.config_path())
+    if cfg.openwebui is None:
+        typer.echo("Error: no 'openwebui' section in config.yaml", err=False)
+        raise typer.Exit(code=1)
+    if cfg.agent is None:
+        typer.echo("Error: no 'agent' section in config.yaml", err=False)
+        raise typer.Exit(code=1)
+    res = provision_agent(cfg.openwebui, cfg.agent)
+    typer.echo(
+        f"provisioned: tool={res['tool_id']} model={res['model_id']} "
+        f"collection={res['collection_id']}"
+    )
+
+
 if __name__ == "__main__":
     app()

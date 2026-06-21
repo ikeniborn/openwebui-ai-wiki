@@ -4,11 +4,11 @@
 
 ## Three subsystems
 
-The product is split into three subsystems, each with its own spec → plan → implementation cycle. Only SP1 is implemented in this branch; SP2 and SP3 are designed but not built.
+The product is split into three subsystems, each with its own spec → plan → implementation cycle. SP1 and SP2 are implemented and merged; SP3 (the OpenWebUI agent) is added in this branch.
 
 - **SP1 — Wiki engine** (this codebase): domains (sources → wiki), entity extraction, page create/merge, Docling extraction, section-aware chunking. Depends on nothing. See [[ingest-pipeline#Ingest pipeline]].
 - **SP2 — Embedding + sync**: chunk records → bge-m3 embeddings (via LiteLLM) → one OpenWebUI Knowledge collection; inotify autosync; deletion propagation. Depends on SP1. SP1 chunk records are embedding-model-agnostic — they store `embed_text`, not vectors.
-- **SP3 — OpenWebUI agent**: Doc Tool (live read/list/search, jailed read-only) + Workspace Model sharing wiki + Knowledge + Tool to all users. Depends on SP2.
+- **SP3 — OpenWebUI agent**: Doc Tool (live read/list/search, jailed read-only) + Workspace Model sharing wiki + Knowledge + Tool to all users. Depends on SP2. See [[openwebui-agent#OpenWebUI agent]].
 
 ## Lineage and strategy
 

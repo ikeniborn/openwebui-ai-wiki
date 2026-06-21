@@ -1,3 +1,50 @@
+---
+review:
+  spec_hash: 3055a1f4b76186da
+  last_run: 2026-06-21
+  phases:
+    structure:   { status: passed }
+    coverage:    { status: passed }
+    clarity:     { status: passed }
+    consistency: { status: passed }
+  findings:
+    - id: F-001
+      phase: clarity
+      severity: WARNING
+      section: "1. Context / 4. Architecture and data flow / 5. Components / 7. Security"
+      section_hash: a2ac1a96b19b2827
+      text: >-
+        Inconsistent term for the search mechanism: §1 and §4 say "grep", while §5
+        and §7 say "ripgrep" for the same Doc Tool search_docs path. Same entity,
+        two names.
+      verdict: open
+      verdict_at: null
+    - id: F-002
+      phase: clarity
+      severity: WARNING
+      section: "2. Goal and scope / 4. Architecture and data flow / 5. Components"
+      section_hash: 7e8a21eb083bfa4b
+      text: >-
+        Unquantified acceptance criteria: "size caps", "top-k", and "configurable"
+        base chat model appear without concrete values or a DoD. No numeric cap,
+        no default top-k, no concrete default model are stated.
+      verdict: open
+      verdict_at: null
+    - id: F-003
+      phase: coverage
+      severity: INFO
+      section: "8. Testing"
+      section_hash: f29c267f2ad0c2ec
+      text: >-
+        End-to-end verification of the "shared/public to all users" requirement
+        (§2 in-scope, §7 security) is not covered by any test step; §8 tests RAG,
+        Tool, jailing, and citations but not the sharing/visibility behavior.
+      verdict: open
+      verdict_at: null
+chain:
+  intent: null
+---
+
 # SP3 — OpenWebUI Agent — Design
 
 - **Date:** 2026-06-20
