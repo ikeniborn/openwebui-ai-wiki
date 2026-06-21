@@ -92,6 +92,8 @@ def _search_docs(roots: list[Path], query: str, max_results: int = 20,
                 return "\n".join(hits)
             if not path.is_file() or path.suffix.lower() not in TEXT_SUFFIXES:
                 continue
+            if not _contained(path.resolve(), roots):   # jail search too: skip symlink escapes
+                continue
             try:
                 data = path.read_bytes()
             except OSError:

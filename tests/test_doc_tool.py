@@ -82,6 +82,19 @@ def test_search_docs_respects_max_results(tmp_path):
     assert len(out.splitlines()) == 2
 
 
+def test_search_docs_jails_symlink_escape(tmp_path):
+    roots = _tree(tmp_path)
+    secret = tmp_path / "outside.md"          # outside any root
+    secret.write_text("TOPSECRETLEAK\n", encoding="utf-8")
+    (roots[0] / "link.md").symlink_to(secret)  # symlink inside the root -> outside
+    out = _search_docs(roots, "TOPSECRETLEAK")
+    assert "TOPSECRETLEAK" not in out
+    assert "no matches" in out
+    # consistency: read_doc rejects the same escaping symlink
+    with pytest.raises(ValueError):
+        _read_doc(roots, "link.md")
+
+
 def test_tool_file_is_self_contained():
     src = Path(doc_tool.__file__).read_text(encoding="utf-8")
     assert "import owaw" not in src
