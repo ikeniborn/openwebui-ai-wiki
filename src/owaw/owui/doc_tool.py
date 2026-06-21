@@ -71,7 +71,7 @@ def _read_doc(roots: list[Path], rel: str, max_bytes: int = 100_000) -> str:
     if real.suffix.lower() in DEFER_SUFFIXES:
         return f"{real.suffix} document — not read directly; rely on RAG search instead: {rel}"
     data = real.read_bytes()
-    if _is_binary(data[:8192]):
+    if _is_binary(data):
         return f"binary file — cannot display: {rel}"
     if len(data) > max_bytes:
         return data[:max_bytes].decode("utf-8", "replace") + f"\n\n[truncated at {max_bytes} bytes]"
@@ -96,7 +96,7 @@ def _search_docs(roots: list[Path], query: str, max_results: int = 20,
                 data = path.read_bytes()
             except OSError:
                 continue
-            if len(data) > max_bytes or _is_binary(data[:8192]):
+            if len(data) > max_bytes or _is_binary(data):
                 continue
             for i, line in enumerate(data.decode("utf-8", "replace").splitlines(), 1):
                 if pattern.search(line):
@@ -118,7 +118,7 @@ class Tools:
 
     async def list_docs(self, path: str = "", __user__: dict | None = None) -> str:
         """
-        List files and folders inside the documentation roots.
+        List files and folders inside the documentation roots (immediate children only; non-recursive).
         :param path: Relative path within the roots; empty lists the roots themselves
         """
         try:
