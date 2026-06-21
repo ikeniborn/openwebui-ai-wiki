@@ -96,3 +96,12 @@ def test_tools_methods_use_valves(tmp_path):
     assert "a.md" in asyncio.run(t.list_docs(""))
     assert "NEEDLE" in asyncio.run(t.search_docs("NEEDLE"))
     assert "escapes" in asyncio.run(t.read_doc("../x"))
+
+
+def test_package_data_loadable():
+    from importlib.resources import files
+    tool_src = files("owaw.owui").joinpath("doc_tool.py").read_text(encoding="utf-8")
+    assert "class Tools" in tool_src
+    prompt = files("owaw.prompts").joinpath("agent_query.md").read_text(encoding="utf-8")
+    assert "Doc Agent" in prompt
+    assert "[[" in prompt  # wikilink citation convention is preserved
